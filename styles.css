@@ -53,3 +53,6 @@ select,input,textarea{ width:100%; padding:10px; border:1px solid var(--rail); b
 .admin-bar input{ padding:8px 10px; border:1px solid var(--rail); border-radius:10px; }
 button{ padding:8px 12px; border:1px solid var(--rail); background:#fff; border-radius:10px; cursor:pointer; }
 button.primary{ background:#c62828; color:#fff; border-color:transparent; }
+
+.modal[hidden]{ display:none !important; }
+
