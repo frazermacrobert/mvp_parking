@@ -51,6 +51,8 @@ adminLock.onclick = () => { state.adminPass = null; toggleAdminUI(false) }
 function toggleAdminUI(on) {
   document.getElementById('adminUnlock').style.display = on ? 'none':'inline-block'
   document.getElementById('adminLock').style.display = on ? 'inline-block':'none'
+  // Re-render so confirmed chips become clickable (or not) immediately
+  render()
   renderWaitlist()
 }
 
@@ -75,10 +77,9 @@ async function loadEmployees(){
 async function loadBookings(){
   const startISO = fmt(state.weekStart)
   const end = addDays(state.weekStart, 7)
-  const endISO = fmt(end)
   const { data, error } = await supa
     .from('bookings').select('*')
-    .gte('date', startISO).lt('date', endISO)
+    .gte('date', startISO).lt('date', fmt(end))
     .in('status',['pending','confirmed'])
   if(error) { console.error(error); return }
   state.bookings = data
@@ -109,35 +110,73 @@ function render(){
     h.textContent = d.toLocaleDateString(undefined, {weekday:'long', day:'numeric', month:'short'})
     dayDiv.appendChild(h)
 
-    const carWrap = document.createElement('div')
-    carWrap.innerHTML = '<div class="footer-note">Car park</div>'
-    const carRow = document.createElement('div')
-    carRow.style.display='grid'; carRow.style.gridTemplateColumns='repeat(5,1fr)'; carRow.style.gap='8px'
-    for(const r of cars){
-      const st = statusFor(r.id, fmt(d))
-      const btn = document.createElement('button')
-      btn.className = 'badge ' + (st.s==='confirmed'?'confirmed': st.s==='pending'?'pending':'empty')
-      btn.textContent = r.label + ' · ' + st.label
-      if(st.s==='empty') btn.onclick = () => showModal(r.id, fmt(d))
-      carRow.appendChild(btn)
-    }
-    carWrap.appendChild(carRow)
-    dayDiv.appendChild(carWrap)
+    // Car row
+    {
+      const wrap = document.createElement('div')
+      wrap.innerHTML = '<div class="footer-note">Car park</div>'
+      const row = document.createElement('div')
+      row.style.display='grid'; row.style.gridTemplateColumns='repeat(5,1fr)'; row.style.gap='8px'
+      for(const r of cars){
+        const st = statusFor(r.id, fmt(d))
+        const btn = document.createElement('button')
+        btn.className = 'badge ' + (st.s==='confirmed'?'confirmed': st.s==='pending'?'pending':'empty')
+        btn.textContent = r.label + ' · ' + st.label
 
-    const deskWrap = document.createElement('div')
-    deskWrap.innerHTML = '<div class="footer-note">Desks</div>'
-    const deskRow = document.createElement('div')
-    deskRow.style.display='grid'; deskRow.style.gridTemplateColumns='repeat(9,1fr)'; deskRow.style.gap='8px'
-    for(const r of desks){
-      const st = statusFor(r.id, fmt(d))
-      const btn = document.createElement('button')
-      btn.className = 'badge ' + (st.s==='confirmed'?'confirmed': st.s==='pending'?'pending':'empty')
-      btn.textContent = r.label + ' · ' + st.label
-      if(st.s==='empty') btn.onclick = () => showModal(r.id, fmt(d))
-      deskRow.appendChild(btn)
+        if(st.s==='empty'){
+          btn.onclick = () => showModal(r.id, fmt(d))
+          btn.style.cursor = 'pointer'
+        } else if(st.s==='confirmed' && state.adminPass){
+          btn.title = 'Free this slot'
+          btn.style.cursor = 'pointer'
+          btn.style.outline = '2px dashed #f5c2c7'
+          btn.onclick = () => {
+            if(confirm(`Free ${r.label} on ${fmt(d)}?`)){
+              adminFree(r.id, fmt(d))
+            }
+          }
+        } else {
+          btn.onclick = null
+        }
+
+        row.appendChild(btn)
+      }
+      wrap.appendChild(row)
+      dayDiv.appendChild(wrap)
     }
-    deskWrap.appendChild(deskRow)
-    dayDiv.appendChild(deskWrap)
+
+    // Desk row
+    {
+      const wrap = document.createElement('div')
+      wrap.innerHTML = '<div class="footer-note">Desks</div>'
+      const row = document.createElement('div')
+      row.style.display='grid'; row.style.gridTemplateColumns='repeat(9,1fr)'; row.style.gap='8px'
+      for(const r of desks){
+        const st = statusFor(r.id, fmt(d))
+        const btn = document.createElement('button')
+        btn.className = 'badge ' + (st.s==='confirmed'?'confirmed': st.s==='pending'?'pending':'empty')
+        btn.textContent = r.label + ' · ' + st.label
+
+        if(st.s==='empty'){
+          btn.onclick = () => showModal(r.id, fmt(d))
+          btn.style.cursor = 'pointer'
+        } else if(st.s==='confirmed' && state.adminPass){
+          btn.title = 'Free this slot'
+          btn.style.cursor = 'pointer'
+          btn.style.outline = '2px dashed #f5c2c7'
+          btn.onclick = () => {
+            if(confirm(`Free ${r.label} on ${fmt(d)}?`)){
+              adminFree(r.id, fmt(d))
+            }
+          }
+        } else {
+          btn.onclick = null
+        }
+
+        row.appendChild(btn)
+      }
+      wrap.appendChild(row)
+      dayDiv.appendChild(wrap)
+    }
 
     daysEl.appendChild(dayDiv)
   }
@@ -146,8 +185,14 @@ function render(){
 }
 
 function renderWaitlist(){
-  const pending = state.bookings.filter(b=> b.status==='pending').sort((a,b)=> new Date(a.requested_at)-new Date(b.requested_at))
-  if(!pending.length) { waitlistEl.innerHTML = '<p class="footer-note">No pending requests this week.</p>'; return }
+  const pending = state.bookings
+    .filter(b=> b.status==='pending')
+    .sort((a,b)=> new Date(a.requested_at)-new Date(b.requested_at))
+
+  if(!pending.length) {
+    waitlistEl.innerHTML = '<p class="footer-note">No pending requests this week.</p>'
+    return
+  }
   waitlistEl.innerHTML = ''
   for(const p of pending){
     const div = document.createElement('div')
@@ -160,8 +205,8 @@ function renderWaitlist(){
     const rejectBtn = document.createElement('button'); rejectBtn.textContent='Reject'; rejectBtn.style.marginLeft='8px'
     approveBtn.onclick = () => adminApprove(p.id)
     rejectBtn.onclick = () => adminReject(p.id)
-    actions.appendChild(approveBtn); actions.appendChild(rejectBtn)
     if(!state.adminPass) actions.style.display='none'
+    actions.appendChild(approveBtn); actions.appendChild(rejectBtn)
     div.appendChild(actions)
     waitlistEl.appendChild(div)
   }
@@ -207,6 +252,25 @@ async function adminReject(bookingId){
   if(!state.adminPass) return alert('Unlock admin first')
   const { error } = await supa.rpc('reject_booking', { p_booking_id: bookingId, p_passphrase: state.adminPass })
   if(error) return alert(error.message || error)
+  await refresh()
+}
+
+async function adminFree(resourceId, date){
+  if(!state.adminPass) return alert('Unlock admin first')
+  const { error } = await supa.rpc('free_slot', {
+    p_resource_id: resourceId,
+    p_date: date,
+    p_passphrase: state.adminPass
+  })
+  if(error) return alert(error.message || error)
+
+  // Auto-promote next pending request for this slot and date (if any)
+  await supa.rpc('promote_next_waitlist', {
+    p_resource_id: resourceId,
+    p_date: date,
+    p_passphrase: state.adminPass
+  })
+
   await refresh()
 }
 
