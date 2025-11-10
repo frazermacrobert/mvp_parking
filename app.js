@@ -179,6 +179,9 @@ function hideModal(){
 async function submitRequest(){
   const emp = employeeSelect.value
   if(!emp) return alert('Pick your name')
+  if(!state.modal.resource_id || !state.modal.date){
+    return alert('Pick a slot first')
+  }
   try {
     const { error } = await supa.rpc('enforce_quota_and_create', {
       p_resource_id: state.modal.resource_id,
