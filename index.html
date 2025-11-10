@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scarlettabbott Parking</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <h1>Scarlettabbott Parking</h1>
+      <div class="weeknav">
+        <button id="prevWeek" class="iconbtn" aria-label="Previous week">◀</button>
+        <div id="weekLabel"></div>
+        <button id="nextWeek" class="iconbtn" aria-label="Next week">▶</button>
+        <input type="date" id="datePicker" />
+      </div>
+      <div class="admin-bar">
+        <input type="password" id="adminPass" placeholder="Admin passphrase">
+        <button id="adminUnlock">Unlock</button>
+        <button id="adminLock" style="display:none;">Lock</button>
+      </div>
+    </header>
+
+    <main class="grid">
+      <section class="scene">
+        <img src="./assets/scene.svg" alt="Map" class="scene-img">
+        <div id="days"></div>
+      </section>
+      <aside class="panel">
+        <h3>Waiting list</h3>
+        <div id="waitlist"></div>
+      </aside>
+    </main>
+
+    <p class="footer-note">Need to cancel? Contact Sue on Microsoft Teams.</p>
+  </div>
+
+  <!-- Modal -->
+  <div id="modal" class="modal" hidden>
+    <div class="modal-card">
+      <h3>Request this slot</h3>
+      <label>Who are you?</label>
+      <select id="employeeSelect"></select>
+      <label>Note <span class="footer-note">(optional)</span></label>
+      <textarea id="noteInput" rows="3" placeholder="Anything the admin should know?"></textarea>
+      <div class="modal-actions">
+        <button id="modalClose">Close</button>
+        <button id="modalSubmit" class="primary">Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

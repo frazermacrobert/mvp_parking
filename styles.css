@@ -1,0 +1,55 @@
+
+:root{
+  --beige:#f4efe9;
+  --paper:#f7f0e6;
+  --ink:#1f1b17;
+  --red:#c62828;
+  --muted:#6b5e55;
+  --rail:rgba(0,0,0,.08);
+}
+
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(1200px 600px at 10% 0%, #ffe7cf 0%, rgba(255,231,207,0) 60%),
+    radial-gradient(800px 600px at 100% 100%, #fde6e6 0%, rgba(253,230,230,0) 55%),
+    var(--paper);
+}
+
+.app{ max-width:1100px; margin:0 auto; padding:20px; }
+
+.header{ display:flex; align-items:center; gap:12px; justify-content:space-between; flex-wrap:wrap; }
+.weeknav{ display:flex; align-items:center; gap:8px; }
+.iconbtn{ width:36px; height:36px; display:grid; place-items:center; }
+.grid{ display:grid; grid-template-columns:2fr 1fr; gap:16px; margin-top:16px; }
+.scene, .panel{
+  background:#fff; border:1px solid var(--rail); border-radius:16px; padding:16px; box-shadow:0 1px 2px rgba(0,0,0,.04);
+}
+.scene-img{ width:100%; border-radius:12px; margin-bottom:12px; }
+
+.day{ border-top:1px dashed var(--rail); padding-top:12px; margin-top:12px; }
+.badge{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:6px 10px; border-radius:999px; font-size:13px; border:1px solid var(--rail); background:#fff; margin:4px;
+}
+.badge.pending{ background:#fff7e6; border-color:#f0d9ad; }
+.badge.confirmed{ background:#fbe8ea; border-color:#f5c2c7; color:#c62828; }
+.badge.empty{ cursor:pointer; }
+
+.modal{ position:fixed; inset:0; background:rgba(0,0,0,.3); display:grid; place-items:center; padding:16px; }
+.modal-card{ width:100%; max-width:420px; background:#fff; border-radius:12px; padding:16px; border:1px solid var(--rail); }
+label{ display:block; margin:8px 0 4px; font-size:14px; color:var(--muted); }
+select,input,textarea{ width:100%; padding:10px; border:1px solid var(--rail); border-radius:10px; }
+.modal-actions{ display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
+
+.footer-note{ color:var(--muted); font-size:12px; }
+.waitlist-item{ display:flex; align-items:center; justify-content:space-between; padding:6px 0; border-bottom:1px dashed var(--rail); }
+.waitlist-item:last-child{ border-bottom:0; }
+
+.admin-bar input{ padding:8px 10px; border:1px solid var(--rail); border-radius:10px; }
+button{ padding:8px 12px; border:1px solid var(--rail); background:#fff; border-radius:10px; cursor:pointer; }
+button.primary{ background:#c62828; color:#fff; border-color:transparent; }
