@@ -88,7 +88,11 @@ async function loadBookings(){
 function statusFor(resource_id, dateISO){
   const d = state.bookings.filter(b => b.resource_id===resource_id && b.date===dateISO)
   const confirmed = d.find(b => b.status==='confirmed')
-  if(confirmed) return { s:'confirmed', label:'CONF', booking: confirmed }
+  if(confirmed) {
+    const emp = state.employees.find(e => e.id === confirmed.employee_id)
+    const label = emp ? emp.name.split(' ')[0] : 'CONF'
+    return { s:'confirmed', label:label, booking: confirmed }
+  }
   const pending = d.find(b => b.status==='pending')
   if(pending) return { s:'pending', label:'PEND', booking: pending }
   return { s:'empty', label:'+' }
@@ -122,20 +126,22 @@ function render(){
         btn.className = 'badge ' + (st.s==='confirmed'?'confirmed': st.s==='pending'?'pending':'empty')
         btn.textContent = r.label + ' · ' + st.label
 
-        if(st.s==='empty'){
-          btn.onclick = () => showModal(r.id, fmt(d))
-          btn.style.cursor = 'pointer'
-        } else if(st.s==='confirmed' && state.adminPass){
-          btn.title = 'Free this slot'
-          btn.style.cursor = 'pointer'
-          btn.style.outline = '2px dashed #f5c2c7'
-          btn.onclick = () => {
-            if(confirm(`Free ${r.label} on ${fmt(d)}?`)){
-              adminFree(r.id, fmt(d))
-            }
-          }
+        if (st.s === 'empty' || st.s === 'pending' || st.s === 'confirmed') {
+          btn.onclick = () => showModal(r.id, fmt(d));
+          btn.style.cursor = 'pointer';
         } else {
-          btn.onclick = null
+          btn.onclick = null;
+        }
+
+        if (st.s === 'confirmed' && state.adminPass) {
+          btn.title = 'Free this slot';
+          btn.style.cursor = 'pointer';
+          btn.style.outline = '2px dashed #f5c2c7';
+          btn.onclick = () => {
+            if (confirm(`Free ${r.label} on ${fmt(d)}?`)) {
+              adminFree(r.id, fmt(d));
+            }
+          };
         }
 
         row.appendChild(btn)
@@ -156,20 +162,22 @@ function render(){
         btn.className = 'badge ' + (st.s==='confirmed'?'confirmed': st.s==='pending'?'pending':'empty')
         btn.textContent = r.label + ' · ' + st.label
 
-        if(st.s==='empty'){
-          btn.onclick = () => showModal(r.id, fmt(d))
-          btn.style.cursor = 'pointer'
-        } else if(st.s==='confirmed' && state.adminPass){
-          btn.title = 'Free this slot'
-          btn.style.cursor = 'pointer'
-          btn.style.outline = '2px dashed #f5c2c7'
-          btn.onclick = () => {
-            if(confirm(`Free ${r.label} on ${fmt(d)}?`)){
-              adminFree(r.id, fmt(d))
-            }
-          }
+        if (st.s === 'empty' || st.s === 'pending' || st.s === 'confirmed') {
+          btn.onclick = () => showModal(r.id, fmt(d));
+          btn.style.cursor = 'pointer';
         } else {
-          btn.onclick = null
+          btn.onclick = null;
+        }
+
+        if (st.s === 'confirmed' && state.adminPass) {
+          btn.title = 'Free this slot';
+          btn.style.cursor = 'pointer';
+          btn.style.outline = '2px dashed #f5c2c7';
+          btn.onclick = () => {
+            if (confirm(`Free ${r.label} on ${fmt(d)}?`)) {
+              adminFree(r.id, fmt(d));
+            }
+          };
         }
 
         row.appendChild(btn)
@@ -203,7 +211,14 @@ function renderWaitlist(){
     const actions = document.createElement('div')
     const approveBtn = document.createElement('button'); approveBtn.textContent='Approve'
     const rejectBtn = document.createElement('button'); rejectBtn.textContent='Reject'; rejectBtn.style.marginLeft='8px'
-    approveBtn.onclick = () => adminApprove(p.id)
+
+    const hasConfirmed = state.bookings.find(b => b.resource_id === p.resource_id && b.date === p.date && b.status === 'confirmed');
+    if (hasConfirmed) {
+      approveBtn.disabled = true;
+      approveBtn.title = 'Slot is already confirmed for another person';
+    } else {
+      approveBtn.onclick = () => adminApprove(p.id);
+    }
     rejectBtn.onclick = () => adminReject(p.id)
     if(!state.adminPass) actions.style.display='none'
     actions.appendChild(approveBtn); actions.appendChild(rejectBtn)
