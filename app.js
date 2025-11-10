@@ -129,16 +129,6 @@ function render(){
         btn.className = 'badge ' + (st.s==='confirmed'?'confirmed': st.s==='pending'?'pending':'empty')
         btn.textContent = r.label + ' · ' + st.label
 
-        if (currentUserCarBooking) {
-          btn.disabled = true
-          btn.title = `You already have a car booking for ${fmt(d)}`
-        } else if (st.s === 'empty' || st.s === 'pending' || st.s === 'confirmed') {
-          btn.onclick = () => showModal(r.id, fmt(d));
-          btn.style.cursor = 'pointer';
-        } else {
-          btn.onclick = null;
-        }
-
         if (st.s === 'confirmed' && state.adminPass) {
           btn.title = 'Free this slot';
           btn.style.cursor = 'pointer';
@@ -148,6 +138,14 @@ function render(){
               adminFree(r.id, fmt(d));
             }
           };
+        } else if (currentUserCarBooking) {
+          btn.disabled = true
+          btn.title = `You already have a car booking for ${fmt(d)}`
+        } else if (st.s === 'empty' || st.s === 'pending' || st.s === 'confirmed') {
+          btn.onclick = () => showModal(r.id, fmt(d));
+          btn.style.cursor = 'pointer';
+        } else {
+          btn.onclick = null;
         }
 
         row.appendChild(btn)
@@ -169,16 +167,6 @@ function render(){
         btn.className = 'badge ' + (st.s==='confirmed'?'confirmed': st.s==='pending'?'pending':'empty')
         btn.textContent = r.label + ' · ' + st.label
 
-        if (currentUserDeskBooking) {
-          btn.disabled = true
-          btn.title = `You already have a desk booking for ${fmt(d)}`
-        } else if (st.s === 'empty' || st.s === 'pending' || st.s === 'confirmed') {
-          btn.onclick = () => showModal(r.id, fmt(d));
-          btn.style.cursor = 'pointer';
-        } else {
-          btn.onclick = null;
-        }
-
         if (st.s === 'confirmed' && state.adminPass) {
           btn.title = 'Free this slot';
           btn.style.cursor = 'pointer';
@@ -188,6 +176,14 @@ function render(){
               adminFree(r.id, fmt(d));
             }
           };
+        } else if (currentUserDeskBooking) {
+          btn.disabled = true
+          btn.title = `You already have a desk booking for ${fmt(d)}`
+        } else if (st.s === 'empty' || st.s === 'pending' || st.s === 'confirmed') {
+          btn.onclick = () => showModal(r.id, fmt(d));
+          btn.style.cursor = 'pointer';
+        } else {
+          btn.onclick = null;
         }
 
         row.appendChild(btn)
