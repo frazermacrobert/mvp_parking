@@ -29,7 +29,6 @@ body{
 .scene, .panel{
   background:#fff; border:1px solid var(--rail); border-radius:16px; padding:16px; box-shadow:0 1px 2px rgba(0,0,0,.04);
 }
-.scene-img{ width:100%; border-radius:12px; margin-bottom:12px; }
 
 .day{ border-top:1px dashed var(--rail); padding-top:12px; margin-top:12px; }
 .badge{
