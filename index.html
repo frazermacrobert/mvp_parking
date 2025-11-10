@@ -15,6 +15,8 @@
         <div id="weekLabel"></div>
         <button id="nextWeek" class="iconbtn" aria-label="Next week">▶</button>
         <input type="date" id="datePicker" />
+        <label for="currentUserSelect" class="footer-note" style="margin-left:16px">Who are you?</label>
+        <select id="currentUserSelect"></select>
       </div>
       <div class="admin-bar">
         <input type="password" id="adminPass" placeholder="Admin passphrase">
@@ -40,8 +42,6 @@
   <div id="modal" class="modal" hidden>
     <div class="modal-card">
       <h3>Request this slot</h3>
-      <label>Who are you?</label>
-      <select id="employeeSelect"></select>
       <label>Note <span class="footer-note">(optional)</span></label>
       <textarea id="noteInput" rows="3" placeholder="Anything the admin should know?"></textarea>
       <div class="modal-actions">

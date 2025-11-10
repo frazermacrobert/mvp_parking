@@ -11,6 +11,7 @@ const state = {
   employees: [],
   bookings: [],
   adminPass: null,
+  currentUser: null,
   modal: { open:false, resource_id:null, date:null }
 }
 
@@ -29,10 +30,10 @@ const weekLabel = document.getElementById('weekLabel')
 const prevWeek = document.getElementById('prevWeek')
 const nextWeek = document.getElementById('nextWeek')
 const datePicker = document.getElementById('datePicker')
+const currentUserSelect = document.getElementById('currentUserSelect')
 const daysEl = document.getElementById('days')
 const waitlistEl = document.getElementById('waitlist')
 const modal = document.getElementById('modal')
-const employeeSelect = document.getElementById('employeeSelect')
 const noteInput = document.getElementById('noteInput')
 const modalClose = document.getElementById('modalClose')
 const modalSubmit = document.getElementById('modalSubmit')
@@ -43,6 +44,7 @@ const adminLock = document.getElementById('adminLock')
 prevWeek.onclick = () => { state.weekStart = addDays(state.weekStart, -7); refresh() }
 nextWeek.onclick = () => { state.weekStart = addDays(state.weekStart, 7); refresh() }
 datePicker.onchange = e => { const d=new Date(e.target.value+'T00:00:00'); state.weekStart=monday(d); refresh() }
+currentUserSelect.onchange = () => { state.currentUser = currentUserSelect.value; render() }
 modalClose.onclick = () => hideModal()
 modalSubmit.onclick = submitRequest
 adminUnlock.onclick = () => { state.adminPass = adminPassInput.value || null; toggleAdminUI(true) }
@@ -71,7 +73,7 @@ async function loadEmployees(){
   const { data, error } = await supa.from('employees').select('id,name,department,is_active').eq('is_active', true).order('name')
   if(error) { console.error(error); return }
   state.employees = data
-  employeeSelect.innerHTML = '<option value="">Pick your name</option>' + data.map(e => `<option value="${e.id}">${e.name} · ${e.department}</option>`).join('')
+  currentUserSelect.innerHTML = '<option value="">Pick your name</option>' + data.map(e => `<option value="${e.id}">${e.name} · ${e.department}</option>`).join('')
 }
 
 async function loadBookings(){
@@ -116,6 +118,7 @@ function render(){
 
     // Car row
     {
+      const currentUserCarBooking = state.bookings.find(b => b.employee_id == state.currentUser && b.date === fmt(d) && cars.some(c => c.id === b.resource_id))
       const wrap = document.createElement('div')
       wrap.innerHTML = '<div class="footer-note">Car park</div>'
       const row = document.createElement('div')
@@ -126,7 +129,10 @@ function render(){
         btn.className = 'badge ' + (st.s==='confirmed'?'confirmed': st.s==='pending'?'pending':'empty')
         btn.textContent = r.label + ' · ' + st.label
 
-        if (st.s === 'empty' || st.s === 'pending' || st.s === 'confirmed') {
+        if (currentUserCarBooking) {
+          btn.disabled = true
+          btn.title = `You already have a car booking for ${fmt(d)}`
+        } else if (st.s === 'empty' || st.s === 'pending' || st.s === 'confirmed') {
           btn.onclick = () => showModal(r.id, fmt(d));
           btn.style.cursor = 'pointer';
         } else {
@@ -152,6 +158,7 @@ function render(){
 
     // Desk row
     {
+      const currentUserDeskBooking = state.bookings.find(b => b.employee_id == state.currentUser && b.date === fmt(d) && desks.some(c => c.id === b.resource_id))
       const wrap = document.createElement('div')
       wrap.innerHTML = '<div class="footer-note">Desks</div>'
       const row = document.createElement('div')
@@ -162,7 +169,10 @@ function render(){
         btn.className = 'badge ' + (st.s==='confirmed'?'confirmed': st.s==='pending'?'pending':'empty')
         btn.textContent = r.label + ' · ' + st.label
 
-        if (st.s === 'empty' || st.s === 'pending' || st.s === 'confirmed') {
+        if (currentUserDeskBooking) {
+          btn.disabled = true
+          btn.title = `You already have a desk booking for ${fmt(d)}`
+        } else if (st.s === 'empty' || st.s === 'pending' || st.s === 'confirmed') {
           btn.onclick = () => showModal(r.id, fmt(d));
           btn.style.cursor = 'pointer';
         } else {
@@ -228,6 +238,7 @@ function renderWaitlist(){
 }
 
 function showModal(resource_id, date){
+  if(!state.currentUser) return alert('Pick your name first')
   state.modal = { open:true, resource_id, date }
   modal.hidden = false
 }
@@ -237,8 +248,7 @@ function hideModal(){
 }
 
 async function submitRequest(){
-  const emp = employeeSelect.value
-  if(!emp) return alert('Pick your name')
+  if(!state.currentUser) return alert('Pick your name')
   if(!state.modal.resource_id || !state.modal.date){
     return alert('Pick a slot first')
   }
@@ -246,7 +256,7 @@ async function submitRequest(){
     const { error } = await supa.rpc('enforce_quota_and_create', {
       p_resource_id: state.modal.resource_id,
       p_date: state.modal.date,
-      p_employee_id: emp,
+      p_employee_id: state.currentUser,
       p_note: noteInput.value || null
     })
     if(error) throw error
